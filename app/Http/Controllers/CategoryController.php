@@ -48,8 +48,8 @@ class CategoryController extends Controller
         // Récupération de toutes les catégories avec le nombre d'annonces
         // Utilisation de withCount pour optimiser la requête
         $categories = Category::withCount('annonces')
-                             ->orderBy('name')  // Tri alphabétique
-                             ->get();
+            ->orderBy('name')  // Tri alphabétique
+            ->get();
 
         // Calcul des statistiques générales
         $totalCategories = $categories->count();
@@ -60,9 +60,9 @@ class CategoryController extends Controller
 
         // Retour de la vue avec les données nécessaires
         return view('categories.index', compact(
-            'categories', 
-            'totalCategories', 
-            'totalAnnonces', 
+            'categories',
+            'totalCategories',
+            'totalAnnonces',
             'mostPopularCategory'
         ));
     }
@@ -85,8 +85,8 @@ class CategoryController extends Controller
         // Construction de la requête de base pour les annonces de cette catégorie
         // Chargement des relations nécessaires pour éviter le problème N+1
         $query = $category->annonces()
-                         ->with(['user', 'category'])
-                         ->orderBy('created_at', 'desc');
+            ->with(['user', 'category'])
+            ->orderBy('created_at', 'desc');
 
         // Application du filtre de recherche par mots-clés si fourni
         if ($request->filled('search')) {
@@ -128,24 +128,32 @@ class CategoryController extends Controller
         // Exécution de la requête avec pagination
         $annonces = $query->paginate(12)->appends($request->query());
 
+        // Calcul des statistiques prix
+        $stats = [
+            'prix_min' => $annonces->min('prix'),
+            'prix_max' => $annonces->max('prix'),
+            'prix_moyen' => round($annonces->avg('prix'), 2),
+        ];
+
         // Calcul de statistiques pour cette catégorie
         $totalAnnonces = $category->annonces()->count();
         $recentAnnonces = $category->annonces()->where('created_at', '>=', now()->subDays(7))->count();
 
         // Récupération des catégories similaires (pour navigation)
         $relatedCategories = Category::where('id', '!=', $category->id)
-                                   ->withCount('annonces')
-                                   ->orderBy('annonces_count', 'desc')
-                                   ->limit(5)
-                                   ->get();
+            ->withCount('annonces')
+            ->orderBy('annonces_count', 'desc')
+            ->limit(5)
+            ->get();
 
         // Retour de la vue avec toutes les données nécessaires
         return view('categories.show', compact(
-            'category', 
-            'annonces', 
-            'totalAnnonces', 
-            'recentAnnonces', 
-            'relatedCategories'
+            'category',
+            'annonces',
+            'totalAnnonces',
+            'recentAnnonces',
+            'relatedCategories',
+            'stats'
         ));
     }
 
@@ -183,7 +191,7 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         // TODO: Vérification des droits administrateur
-        
+
         // Validation complète des données entrantes
         $validatedData = $request->validate([
             'name' => [
@@ -216,12 +224,12 @@ class CategoryController extends Controller
 
             // Redirection vers la page de la catégorie avec message de succès
             return redirect()->route('categories.show', $category)
-                           ->with('success', 'La catégorie a été créée avec succès !');
+                ->with('success', 'La catégorie a été créée avec succès !');
 
         } catch (\Exception $e) {
             // En cas d'erreur lors de la création
             return back()->withErrors(['general' => 'Une erreur est survenue lors de la création.'])
-                       ->withInput();
+                ->withInput();
         }
     }
 
@@ -236,7 +244,7 @@ class CategoryController extends Controller
     public function edit(Category $category)
     {
         // TODO: Vérification des droits administrateur
-        
+
         return view('categories.edit', compact('category'));
     }
 
@@ -256,7 +264,7 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         // TODO: Vérification des droits administrateur
-        
+
         // Validation des données avec règle d'unicité excluant la catégorie actuelle
         $validatedData = $request->validate([
             'name' => [
@@ -285,12 +293,12 @@ class CategoryController extends Controller
 
             // Redirection avec message de succès
             return redirect()->route('categories.show', $category)
-                           ->with('success', 'La catégorie a été mise à jour avec succès !');
+                ->with('success', 'La catégorie a été mise à jour avec succès !');
 
         } catch (\Exception $e) {
             // En cas d'erreur lors de la mise à jour
             return back()->withErrors(['general' => 'Une erreur est survenue lors de la mise à jour.'])
-                       ->withInput();
+                ->withInput();
         }
     }
 
@@ -311,13 +319,14 @@ class CategoryController extends Controller
     public function destroy(Category $category)
     {
         // TODO: Vérification des droits administrateur
-        
+
         try {
             // Vérification que la catégorie n'a pas d'annonces associées
             $annoncesCount = $category->annonces()->count();
-            
+
             if ($annoncesCount > 0) {
-                return back()->with('error', 
+                return back()->with(
+                    'error',
                     "Impossible de supprimer cette catégorie car elle contient {$annoncesCount} annonce(s). " .
                     "Veuillez d'abord déplacer ou supprimer les annonces associées."
                 );
@@ -329,7 +338,7 @@ class CategoryController extends Controller
 
             // Redirection vers la liste des catégories avec message de succès
             return redirect()->route('categories.index')
-                           ->with('success', "La catégorie '{$categoryName}' a été supprimée avec succès.");
+                ->with('success', "La catégorie '{$categoryName}' a été supprimée avec succès.");
 
         } catch (\Exception $e) {
             // En cas d'erreur lors de la suppression
@@ -350,8 +359,8 @@ class CategoryController extends Controller
         try {
             // Récupération des catégories avec leurs statistiques
             $categories = Category::withCount('annonces')
-                                ->orderBy('annonces_count', 'desc')
-                                ->get();
+                ->orderBy('annonces_count', 'desc')
+                ->get();
 
             // Calcul des statistiques générales
             $totalCategories = $categories->count();
@@ -364,7 +373,7 @@ class CategoryController extends Controller
                     'id' => $category->id,
                     'name' => $category->name,
                     'annonces_count' => $category->annonces_count,
-                    'percentage' => $category->annonces_count > 0 ? 
+                    'percentage' => $category->annonces_count > 0 ?
                         round(($category->annonces_count / Category::withCount('annonces')->get()->sum('annonces_count')) * 100, 1) : 0
                 ];
             });
@@ -412,10 +421,10 @@ class CategoryController extends Controller
 
             // Recherche des catégories correspondantes
             $categories = Category::search($searchTerm)
-                                ->withCount('annonces')
-                                ->orderBy('name')
-                                ->limit(10) // Limite à 10 résultats pour l'autocomplétion
-                                ->get();
+                ->withCount('annonces')
+                ->orderBy('name')
+                ->limit(10) // Limite à 10 résultats pour l'autocomplétion
+                ->get();
 
             // Formatage des résultats pour l'API
             $results = $categories->map(function ($category) {

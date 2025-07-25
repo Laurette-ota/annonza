@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Titre dynamique de la page -->
-    <title>@yield('title', 'Plateforme d\'Annonces') - {{ config('app.name', 'AnnoncesHub') }}</title>
+    <title>@yield('title', 'Annonces Plaza') - {{ config('app.name', 'AnnoncesHub') }}</title>
 
     <!-- Meta descriptions pour SEO -->
     <meta name="description" content="@yield('description', 'Plateforme moderne de publication et recherche d\'annonces. Trouvez ou publiez des annonces facilement avec notre interface intuitive.')">
@@ -276,8 +276,8 @@
                         <h4 class="text-lg font-semibold text-white mb-4">Contact</h4>
                         <ul class="space-y-2 text-white/80">
                             <li>Email: contact@annonceshub.com</li>
-                            <li>Tél: +33 1 23 45 67 89</li>
-                            <li>Adresse: 123 Rue de la Paix, Paris</li>
+                            <li>Tél: +229 01 91 00 59 93</li>
+                            <li>Adresse: Akogbato, Cotonou, BENIN</li>
                         </ul>
                     </div>
                 </div>
@@ -286,7 +286,7 @@
                 <div class="border-t border-white/20 mt-8 pt-8 text-center">
                     <p class="text-white/60">
                         © {{ date('Y') }} {{ config('app.name', 'AnnoncesHub') }}. Tous droits réservés.
-                        Développé avec ❤️ et Laravel.
+                        Développé avec coeur❤️ et Laravel.
                     </p>
                 </div>
             </div>
