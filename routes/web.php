@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnnonceController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
@@ -142,6 +143,13 @@ Route::get('/test-config', function () {
         'storage_exists' => file_exists(public_path('storage')),
     ]);
 })->name('test.config');
+
+// Route pour le tableau de bord utilisateur
+// Affiche le tableau de bord avec un message si l'utilisateur vient de s'inscrire
+// ou si son compte est très récent (moins de 5 minutes)
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 /*
 |--------------------------------------------------------------------------
